@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "card_ids": [
+      1,
+      2
+    ],
+    "start_date": "2026-03-04",
+    "end_date": "2026-03-18",
+    "include_in_daily": true,
+    "name": "跳跳虎"
+  }
+]

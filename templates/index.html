@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>记忆卡片系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<div class="app">
+    <header class="app-header">
+        <h1>记忆卡片系统</h1>
+        <p>今日计划 · 记忆卡片</p>
+    </header>
+
+    <main class="app-main">
+        <div class="tabs">
+            <button class="tab-button active" data-tab="today">今日进度</button>
+            <button class="tab-button" data-tab="cards">卡片管理</button>
+            <button class="tab-button" data-tab="plans">计划管理</button>
+        </div>
+
+        <section id="tab-today" class="tab-content active">
+            <div class="today-header">
+                <div>
+                    <h2>今日背诵进度</h2>
+                    <p id="today-date"></p>
+                </div>
+                <div class="progress">
+                    <span id="progress-text">进度：0 / 0</span>
+                    <div class="progress-bar">
+                        <div id="progress-bar-inner" class="progress-bar-inner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="study-controls">
+                <button id="shuffle-btn" class="primary">乱序刷新</button>
+                <button id="add-plan-btn" class="secondary">管理计划</button>
+            </div>
+
+            <div id="today-empty" class="empty-state hidden">
+                <p>今天还没有加入“每日背诵计划”的学习任务，请在“记忆卡片与计划”中管理计划。</p>
+            </div>
+
+            <div id="study-list" class="card-grid"></div>
+        </section>
+
+        <section id="tab-cards" class="tab-content">
+            <div class="cards-header">
+                <h2>记忆卡片库</h2>
+                <button id="new-card-btn" class="primary">新建卡片</button>
+            </div>
+            <div class="card-list-container">
+                <div id="cards-list" class="card-grid"></div>
+            </div>
+        </section>
+
+        <section id="tab-plans" class="tab-content">
+            <div class="cards-header">
+                <h2>计划管理</h2>
+                <button id="new-plan-btn" class="primary">新建计划</button>
+            </div>
+            <p style="margin:0 0 0.75rem;color:#9ca3af;font-size:0.9rem;">在此查看与管理所有计划：点击“新建计划”通过弹窗创建，点击每条计划可展开查看包含的卡片。</p>
+            <div class="card-list-container">
+                <div id="plans-list" class="plans-list"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 卡片编辑弹窗 -->
+    <div id="card-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <header class="modal-header">
+                <h3 id="card-modal-title">卡片</h3>
+                <button id="card-modal-close" class="icon-button">&times;</button>
+            </header>
+            <div class="modal-body">
+                <label class="field">
+                    <span>题目</span>
+                    <input type="text" id="card-title-input">
+                </label>
+                <label class="field">
+                    <span>关键点</span>
+                    <input type="text" id="card-key-input">
+                </label>
+                <label class="field">
+                    <span>详细内容（支持 Markdown）</span>
+                    <textarea id="card-content-input" rows="8"></textarea>
+                </label>
+            </div>
+            <footer class="modal-footer">
+                <button id="card-delete-btn" class="danger">删除</button>
+                <div class="spacer"></div>
+                <button id="card-cancel-btn" class="secondary">取消</button>
+                <button id="card-save-btn" class="primary">保存</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- 学习模式详情弹窗 -->
+    <div id="study-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <header class="modal-header">
+                <h3 id="study-modal-title">卡片详情</h3>
+                <button id="study-modal-close" class="icon-button">&times;</button>
+            </header>
+            <div class="modal-body">
+                <p id="study-modal-key" class="study-key"></p>
+                <button id="toggle-answer-btn" class="secondary full-width">查看答案</button>
+                <div id="study-answer" class="study-answer hidden"></div>
+            </div>
+            <footer class="modal-footer">
+                <button data-status="not_remembered" class="secondary status-btn">没记住</button>
+                <button data-status="remembered" class="primary status-btn">记住了</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- 计划新建弹窗 -->
+    <div id="plan-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <header class="modal-header">
+                <h3 id="plan-modal-title">新建计划</h3>
+                <button id="plan-modal-close" class="icon-button">&times;</button>
+            </header>
+            <div class="modal-body">
+                <label class="field">
+                    <span>计划名称</span>
+                    <input type="text" id="plan-name-input" placeholder="例如：早晨背诵计划">
+                </label>
+                <div class="cards-layout" style="gap:0.75rem;align-items:flex-start;">
+                    <div class="field" style="flex:1;">
+                        <span>开始日期</span>
+                        <input type="date" id="plan-start-input">
+                    </div>
+                    <div class="field" style="flex:1;">
+                        <span>结束日期</span>
+                        <input type="date" id="plan-end-input">
+                    </div>
+                </div>
+                <label class="field" style="flex-direction:row;align-items:center;gap:0.5rem;margin-top:0.2rem;">
+                    <input type="checkbox" id="plan-include-input" checked>
+                    <span>加入每日背诵计划</span>
+                </label>
+                <div class="field">
+                    <span>计划中的卡片</span>
+                    <div id="plan-selected-list" class="plan-card-select"></div>
+                </div>
+                <div class="field">
+                    <span>可添加的记忆卡片</span>
+                    <div id="plan-available-list" class="plan-card-select"></div>
+                </div>
+            </div>
+            <footer class="modal-footer">
+                <div class="spacer"></div>
+                <button id="plan-cancel-btn" class="secondary">取消</button>
+                <button id="plan-save-btn" class="primary">保存计划</button>
+            </footer>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/main.js"></script>
+</body>
+</html>
+
