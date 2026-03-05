@@ -25,7 +25,10 @@
    ```bash
    cd memory-cards
    python -m venv .venv
-   .venv\Scripts\activate  # Windows PowerShell
+   # Windows PowerShell
+   # .venv\Scripts\activate
+   # Ubuntu
+     
    ```
 
 2. 安装依赖
@@ -37,7 +40,9 @@
 3. 启动服务
 
    ```bash
+   # python app.py --host=0.0.0.0 --port=8000
    python app.py
+   
    ```
 
 4. 浏览器访问
