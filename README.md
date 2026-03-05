@@ -28,7 +28,9 @@
    # Windows PowerShell
    # .venv\Scripts\activate
    # Ubuntu
-     
+   python3 -m venv .venv
+   source .venv/bin/activate
+   
    ```
 
 2. 安装依赖
@@ -42,7 +44,6 @@
    ```bash
    # python app.py --host=0.0.0.0 --port=8000
    python app.py
-   
    ```
 
 4. 浏览器访问
