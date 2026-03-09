@@ -817,7 +817,7 @@ chunk strategy 不应该只凭经验，需要通过评测优化，例如：
 
 ---
 
-# **hunk size 应该越大越好吗？**
+# **chunk size 应该越大越好吗？**
 
 不是的。**chunk size 并不是越大越好**。在 RAG 系统中，chunk size 需要在 **语义完整性和检索精度之间取得平衡**。如果 chunk 太大或太小都会带来问题。
 
