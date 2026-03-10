@@ -81,5 +81,15 @@
     "end_date": "2026-03-18",
     "include_in_daily": true,
     "name": "跳跳虎"
+  },
+  {
+    "id": 2,
+    "name": "RAG",
+    "card_ids": [
+      7
+    ],
+    "start_date": "2026-03-10",
+    "end_date": "2026-03-31",
+    "include_in_daily": true
   }
 ]

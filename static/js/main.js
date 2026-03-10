@@ -421,7 +421,7 @@ let currentPlanSelectedIds = new Set();
 
 function openPlanModal(plan) {
     const today = new Date().toISOString().slice(0, 10);
-    editingPlan = plan || null;
+    editingPlan = plan && typeof plan === "object" && plan.id != null && plan.id !== "undefined" ? plan : null;
 
     if (editingPlan) {
         $("#plan-modal-title").textContent = "编辑计划";
@@ -447,7 +447,7 @@ function closePlanModal() {
     planModal.classList.add("hidden");
 }
 
-$("#new-plan-btn").addEventListener("click", openPlanModal);
+$("#new-plan-btn").addEventListener("click", () => openPlanModal());
 $("#plan-modal-close").addEventListener("click", closePlanModal);
 $("#plan-cancel-btn").addEventListener("click", closePlanModal);
 planModal.querySelector(".modal-backdrop").addEventListener("click", closePlanModal);
@@ -469,7 +469,7 @@ $("#plan-save-btn").addEventListener("click", async () => {
     }
 
     try {
-        if (editingPlan) {
+        if (editingPlan != null && editingPlan.id != null && editingPlan.id !== "undefined") {
             await api(`/api/plans/${editingPlan.id}`, {
                 method: "PUT",
                 body: JSON.stringify({
