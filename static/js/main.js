@@ -342,7 +342,11 @@ $all(".status-btn").forEach((btn) => {
 
             renderToday();
 
-            const nextIndex = currentStudyIndex + 1;
+            // 跳过已记住的卡片，找下一张待记忆的
+            let nextIndex = currentStudyIndex + 1;
+            while (nextIndex < studyCardsShuffled.length && todayData.progress?.[String(studyCardsShuffled[nextIndex].id)] === "remembered") {
+                nextIndex++;
+            }
             closeStudyModal();
 
             if (nextIndex < studyCardsShuffled.length) {
