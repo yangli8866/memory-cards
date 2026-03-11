@@ -29,6 +29,30 @@ def read_json(path: Path, default):
         return default
 
 
+def _is_date_key(s: str) -> bool:
+    """True if key looks like YYYY-MM-DD (old per-day progress format)."""
+    if len(s) != 10 or s[4] != "-" or s[7] != "-":
+        return False
+    return s.replace("-", "").isdigit()
+
+
+def load_global_progress() -> Dict[str, str]:
+    """Load progress as global card_id -> status. Migrate old per-day format to global."""
+    raw = read_json(PROGRESS_FILE, {})
+    if not isinstance(raw, dict):
+        return {}
+    # Old format: { "2025-03-10": { "card_id": "remembered" }, ... }
+    if any(_is_date_key(k) for k in raw):
+        merged: Dict[str, str] = {}
+        for v in raw.values():
+            if isinstance(v, dict):
+                merged.update(v)
+        if merged != raw:
+            write_json(PROGRESS_FILE, merged)
+        return merged
+    return raw
+
+
 def write_json(path: Path, data) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -191,7 +215,6 @@ def today_plan():
     today_str = date.today().isoformat()
     cards = read_json(CARDS_FILE, [])
     plans = read_json(PLANS_FILE, [])
-    progress: Dict[str, Dict[str, str]] = read_json(PROGRESS_FILE, {})
 
     active_card_ids: List[int] = []
     for p in plans:
@@ -210,15 +233,15 @@ def today_plan():
     id_set = set(active_card_ids_unique)
     active_cards = [c for c in cards if c["id"] in id_set]
 
-    today_progress = progress.get(today_str, {})
-    remembered_count = sum(1 for cid in active_card_ids_unique if today_progress.get(str(cid)) == "remembered")
+    progress = load_global_progress()
+    remembered_count = sum(1 for cid in active_card_ids_unique if progress.get(str(cid)) == "remembered")
     total_count = len(active_card_ids_unique)
 
     return jsonify(
         {
             "date": today_str,
             "cards": active_cards,
-            "progress": today_progress,
+            "progress": progress,
             "stats": {
                 "remembered": remembered_count,
                 "total": total_count,
@@ -237,13 +260,17 @@ def update_progress():
     if card_id is None or status not in {"remembered", "not_remembered"}:
         return jsonify({"error": "card_id and valid status are required"}), 400
 
-    today_str = date.today().isoformat()
-    progress: Dict[str, Dict[str, str]] = read_json(PROGRESS_FILE, {})
-    today_progress = progress.get(today_str, {})
-    today_progress[str(card_id)] = status
-    progress[today_str] = today_progress
+    progress = load_global_progress()
+    progress[str(card_id)] = status
     write_json(PROGRESS_FILE, progress)
-    return jsonify({"date": today_str, "card_id": card_id, "status": status})
+    return jsonify({"card_id": card_id, "status": status})
+
+
+@app.route("/api/progress/clear", methods=["POST"])
+def clear_progress():
+    """Clear all progress; all cards become not remembered."""
+    write_json(PROGRESS_FILE, {})
+    return jsonify({"ok": True})
 
 
 if __name__ == "__main__":

@@ -377,6 +377,17 @@ $("#add-plan-btn").addEventListener("click", () => {
     }
 });
 
+// Clear progress: all cards become not remembered
+$("#clear-progress-btn").addEventListener("click", async () => {
+    if (!confirm("确定要清空全部进度吗？所有卡片将变为「未记住」状态。")) return;
+    try {
+        await api("/api/progress/clear", { method: "POST" });
+        await loadToday();
+    } catch (e) {
+        alert(e.message || "清空失败");
+    }
+});
+
 // Plan modal (create / edit)
 const planModal = $("#plan-modal");
 
