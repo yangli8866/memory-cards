@@ -228,8 +228,10 @@ async function loadPlans() {
 }
 
 async function loadAll() {
+    // 优先加载“今日进度”，让首页更快可用，再加载卡片和计划
+    await loadToday();
     await loadCards();
-    await Promise.all([loadToday(), loadPlans()]);
+    await loadPlans();
 }
 
 // Card modal (create/edit)
@@ -302,8 +304,11 @@ function openStudyModal(card, status, index) {
     currentStudyIndex = typeof index === "number" ? index : studyCardsShuffled.findIndex((c) => c.id === card.id);
     $("#study-modal-title").textContent = card.title;
     $("#study-modal-key").textContent = card.key_points || "";
-    $("#study-answer").innerHTML = marked.parse(card.content || "");
-    $("#study-answer").classList.add("hidden");
+    const answer = $("#study-answer");
+    // 延迟渲染 Markdown，避免每次打开卡片都解析大段文本造成卡顿
+    answer.innerHTML = "";
+    answer.classList.add("hidden");
+    answer.dataset.cardId = String(card.id);
     $("#toggle-answer-btn").textContent = "查看答案";
     studyModal.classList.remove("hidden");
 }
@@ -318,6 +323,14 @@ studyModal.querySelector(".modal-backdrop").addEventListener("click", closeStudy
 $("#toggle-answer-btn").addEventListener("click", () => {
     const answer = $("#study-answer");
     const hidden = answer.classList.toggle("hidden");
+    if (!hidden) {
+        // 仅在首次展示答案时解析 Markdown，并按卡片缓存，减少重复解析开销
+        const currentId = currentStudyCard ? String(currentStudyCard.id) : "";
+        if (!answer.innerHTML || answer.dataset.cardId !== currentId) {
+            answer.innerHTML = marked.parse((currentStudyCard && currentStudyCard.content) || "");
+            answer.dataset.cardId = currentId;
+        }
+    }
     $("#toggle-answer-btn").textContent = hidden ? "查看答案" : "隐藏答案";
 });
 
