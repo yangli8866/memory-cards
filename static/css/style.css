@@ -200,15 +200,6 @@ body {
     color: #86868b;
 }
 
-.card-footer .card-delete-btn {
-    flex-shrink: 0;
-}
-
-.card-footer .card-delete-btn:hover {
-    color: #c45c5a;
-    background: rgba(242, 132, 130, 0.15);
-}
-
 .badge {
     padding: 4px 10px;
     border-radius: 6px;
@@ -283,6 +274,32 @@ button {
 .full-width {
     width: 100%;
     justify-content: center;
+}
+
+.cards-batch-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem;
+    background: rgba(242, 132, 130, 0.08);
+    border: 1px solid rgba(242, 132, 130, 0.2);
+    border-radius: 10px;
+    font-size: 0.875rem;
+}
+
+.cards-batch-bar.hidden {
+    display: none;
+}
+
+.cards-batch-bar #cards-selected-count {
+    color: #b85c5a;
+    font-weight: 500;
+}
+
+.cards-batch-bar .danger {
+    padding: 6px 14px;
+    font-size: 0.8125rem;
 }
 
 .cards-header {

@@ -95,6 +95,23 @@ function renderToday() {
     });
 }
 
+function getSelectedCardIds() {
+    return $all("#cards-list .card-checkbox:checked").map((el) => parseInt(el.dataset.cardId, 10));
+}
+
+function updateCardsBatchBar() {
+    const ids = getSelectedCardIds();
+    const bar = $("#cards-batch-bar");
+    const countEl = $("#cards-selected-count");
+    if (!bar || !countEl) return;
+    if (ids.length === 0) {
+        bar.classList.add("hidden");
+        return;
+    }
+    bar.classList.remove("hidden");
+    countEl.textContent = `已选 ${ids.length} 张`;
+}
+
 function renderCardsList() {
     const container = $("#cards-list");
     container.innerHTML = "";
@@ -106,28 +123,19 @@ function renderCardsList() {
             <div class="card-title">${card.title}</div>
             <div class="card-key">${card.key_points || "（无关键点）"}</div>
             <div class="card-footer">
-                <span>ID: ${card.id}</span>
                 <span>点击编辑</span>
-                <button type="button" class="icon-button card-delete-btn" data-card-id="${card.id}" title="删除卡片">✕</button>
             </div>
         `;
         item.addEventListener("click", (e) => {
-            if (e.target.matches("input[type='checkbox']") || e.target.closest(".card-delete-btn")) return;
+            if (e.target.matches("input[type='checkbox']")) return;
             openCardModal(card);
         });
-        const deleteBtn = item.querySelector(".card-delete-btn");
-        deleteBtn.addEventListener("click", async (e) => {
-            e.stopPropagation();
-            if (!confirm(`确定要删除卡片「${card.title}」吗？`)) return;
-            try {
-                await api(`/api/cards/${card.id}`, { method: "DELETE" });
-                await loadAll();
-            } catch (err) {
-                alert(err.message || "删除失败");
-            }
-        });
+        const checkbox = item.querySelector(".card-checkbox");
+        checkbox.addEventListener("change", updateCardsBatchBar);
+        checkbox.addEventListener("click", (e) => e.stopPropagation());
         container.appendChild(item);
     });
+    updateCardsBatchBar();
 }
 
 function renderPlansList(plans) {
@@ -410,6 +418,20 @@ $("#clear-progress-btn").addEventListener("click", async () => {
         await loadToday();
     } catch (e) {
         alert(e.message || "清空失败");
+    }
+});
+
+$("#cards-batch-delete-btn").addEventListener("click", async () => {
+    const ids = getSelectedCardIds();
+    if (!ids.length) return;
+    if (!confirm(`确定要删除已选的 ${ids.length} 张卡片吗？此操作不可恢复。`)) return;
+    try {
+        for (const id of ids) {
+            await api(`/api/cards/${id}`, { method: "DELETE" });
+        }
+        await loadAll();
+    } catch (e) {
+        alert(e.message || "删除失败");
     }
 });
 
