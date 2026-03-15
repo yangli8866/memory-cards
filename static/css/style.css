@@ -200,6 +200,15 @@ body {
     color: #86868b;
 }
 
+.card-footer .card-delete-btn {
+    flex-shrink: 0;
+}
+
+.card-footer .card-delete-btn:hover {
+    color: #c45c5a;
+    background: rgba(242, 132, 130, 0.15);
+}
+
 .badge {
     padding: 4px 10px;
     border-radius: 6px;

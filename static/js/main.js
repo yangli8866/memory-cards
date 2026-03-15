@@ -108,11 +108,23 @@ function renderCardsList() {
             <div class="card-footer">
                 <span>ID: ${card.id}</span>
                 <span>点击编辑</span>
+                <button type="button" class="icon-button card-delete-btn" data-card-id="${card.id}" title="删除卡片">✕</button>
             </div>
         `;
         item.addEventListener("click", (e) => {
-            if (e.target.matches("input[type='checkbox']")) return;
+            if (e.target.matches("input[type='checkbox']") || e.target.closest(".card-delete-btn")) return;
             openCardModal(card);
+        });
+        const deleteBtn = item.querySelector(".card-delete-btn");
+        deleteBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            if (!confirm(`确定要删除卡片「${card.title}」吗？`)) return;
+            try {
+                await api(`/api/cards/${card.id}`, { method: "DELETE" });
+                await loadAll();
+            } catch (err) {
+                alert(err.message || "删除失败");
+            }
         });
         container.appendChild(item);
     });
